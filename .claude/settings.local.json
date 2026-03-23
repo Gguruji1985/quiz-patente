@@ -5,7 +5,8 @@
       "Bash(npx vite:*)",
       "Bash(node -e \":*)",
       "Bash(npx pkg:*)",
-      "Bash(grep -E \"\\\\.\\(jsx|js\\)$\")"
+      "Bash(grep -E \"\\\\.\\(jsx|js\\)$\")",
+      "Bash(npm run:*)"
     ]
   }
 }
