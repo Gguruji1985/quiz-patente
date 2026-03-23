@@ -65,7 +65,7 @@ function saveQStats(s) {
 function calcReadiness(history, qStats) {
   if (history.length === 0) return 0;
 
-  const exams   = history.filter(s => s.mode !== 'infinito');
+  const exams   = history.filter(s => s.mode !== 'infinito' && s.mode !== 'errori' && s.mode !== 'normale');
   const recent  = (exams.length > 0 ? exams : history).slice(-5);
 
   const accScore  = recent.reduce((s, h) => s + h.correct / Math.max(h.totalAnswered, 1), 0) / recent.length;
@@ -148,14 +148,19 @@ const MODES = {
     totalQ: null, qTimer: 30, totalTimer: null, maxErr: null, color: '#06b6d4',
   },
   normale: {
-    id: 'normale', name: 'Quiz Normale', icon: '✏', subtitle: '30 dom · 20 min',
-    desc: 'Simulazione realistica. 30 domande casuali, 20 minuti totali. Superato con al massimo 4 errori.',
-    totalQ: 30, qTimer: null, totalTimer: 1200, maxErr: 4, color: '#a855f7',
+    id: 'normale', name: 'Quiz Normale', icon: '✏', subtitle: '30 dom · senza timer',
+    desc: 'Allenamento libero. 30 domande casuali senza limite di tempo e senza penalità errori.',
+    totalQ: 30, qTimer: null, totalTimer: null, maxErr: null, color: '#a855f7',
   },
   ministeriale: {
-    id: 'ministeriale', name: 'Simulazione Ministeriale', icon: '🏛', subtitle: 'Esame ufficiale',
-    desc: 'Riproduce l\'esame ministeriale di Stato. 30 domande dal database ufficiale 2023, 20 min, max 4 errori.',
-    totalQ: 30, qTimer: null, totalTimer: 1200, maxErr: 4, color: '#f59e0b',
+    id: 'ministeriale', name: 'Simulazione Ministeriale', icon: '🏛', subtitle: '20 min · max 3 errori',
+    desc: 'Riproduce l\'esame ministeriale di Stato. 30 domande, 20 minuti, massimo 3 errori consentiti.',
+    totalQ: 30, qTimer: null, totalTimer: 1200, maxErr: 3, color: '#f59e0b',
+  },
+  errori: {
+    id: 'errori', name: 'Ripassa Errori', icon: '🔁', subtitle: 'Solo domande sbagliate',
+    desc: 'Ripasssa solo le domande che hai risposto male in precedenza. Ideale per colmare le lacune.',
+    totalQ: null, qTimer: null, totalTimer: null, maxErr: null, color: '#f43f5e',
   },
 };
 
@@ -241,7 +246,7 @@ export default function App() {
     <div style={{ minHeight: '100vh', background: C.bg, color: C.text, fontFamily: "'Nunito', system-ui, sans-serif" }}>
       <style>{globalStyles}</style>
       {screen === 'home'    && <HomeScreen onStart={start} onStats={() => setScreen('stats')} history={history} qStats={qStats} />}
-      {screen === 'quiz'    && mode && <QuizScreen key={quizKey} mode={mode} onDone={finish} />}
+      {screen === 'quiz'    && mode && <QuizScreen key={quizKey} mode={mode} qStats={qStats} onDone={finish} />}
       {screen === 'results' && results && <ResultsScreen results={results} mode={mode} qStats={qStats} onRestart={restart} onHome={() => setScreen('home')} />}
       {screen === 'stats'   && <StatsScreen history={history} qStats={qStats} onHome={() => setScreen('home')} onClear={clearStats} />}
     </div>
@@ -318,13 +323,21 @@ function HomeScreen({ onStart, onStats, history, qStats }) {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {Object.values(MODES).map((m, i) => (
-          <ModeCard key={m.id} m={m} delay={i * 60} onSelect={() => onStart(m.id)} />
-        ))}
+        {Object.values(MODES).map((m, i) => {
+          const wrongCount = m.id === 'errori'
+            ? Object.values(qStats).filter(s => s.seen > 0 && s.correct < s.seen).length
+            : null;
+          return (
+            <ModeCard key={m.id} m={m} delay={i * 60} onSelect={() => onStart(m.id)}
+              disabled={m.id === 'errori' && wrongCount === 0}
+              badge={m.id === 'errori' && wrongCount > 0 ? `${wrongCount} dom` : null}
+            />
+          );
+        })}
       </div>
 
       <div style={{ display: 'flex', marginTop: 44, background: C.surface, borderRadius: 16, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
-        {[[ALL_Q.length.toLocaleString('it'), 'Domande'], ['3', 'Modalità'], ['Gratis', 'Sempre']].map(([v, l], i) => (
+        {[[ALL_Q.length.toLocaleString('it'), 'Domande'], ['4', 'Modalità'], ['Gratis', 'Sempre']].map(([v, l], i) => (
           <div key={l} style={{ flex: 1, padding: '20px 10px', textAlign: 'center', borderRight: i < 2 ? `1px solid ${C.border}` : 'none' }}>
             <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: '#fff' }}>{v}</div>
             <div style={{ fontSize: 12, color: C.dim, fontWeight: 600, marginTop: 3 }}>{l}</div>
@@ -335,15 +348,15 @@ function HomeScreen({ onStart, onStats, history, qStats }) {
   );
 }
 
-function ModeCard({ m, onSelect, delay }) {
+function ModeCard({ m, onSelect, delay, disabled, badge }) {
   const [hov, setHov] = useState(false);
   return (
     <button
-      onClick={onSelect}
-      onMouseEnter={() => setHov(true)}
+      onClick={disabled ? undefined : onSelect}
+      onMouseEnter={() => !disabled && setHov(true)}
       onMouseLeave={() => setHov(false)}
       className="fadeup"
-      style={{ animationDelay: `${delay}ms`, background: hov ? `${m.color}08` : C.surface, border: `1px solid ${hov ? m.color : C.border}`, borderRadius: 16, padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 20, textAlign: 'left', transition: 'all 0.2s', width: '100%', color: C.text }}
+      style={{ animationDelay: `${delay}ms`, background: disabled ? C.surface : hov ? `${m.color}08` : C.surface, border: `1px solid ${disabled ? C.border : hov ? m.color : C.border}`, borderRadius: 16, padding: '22px 24px', display: 'flex', alignItems: 'center', gap: 20, textAlign: 'left', transition: 'all 0.2s', width: '100%', color: C.text, opacity: disabled ? 0.45 : 1, cursor: disabled ? 'default' : 'pointer' }}
     >
       <div style={{ width: 58, height: 58, borderRadius: 16, background: `${m.color}1a`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: m.id === 'infinito' ? 30 : 22, fontWeight: 700, color: m.color, flexShrink: 0, fontFamily: m.id === 'infinito' ? "'Oswald', sans-serif" : 'inherit' }}>
         {m.icon}
@@ -352,8 +365,9 @@ function ModeCard({ m, onSelect, delay }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 5 }}>
           <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 19, fontWeight: 700, color: '#fff' }}>{m.name}</span>
           <span style={{ fontSize: 10, color: m.color, background: `${m.color}1a`, padding: '3px 10px', borderRadius: 100, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{m.subtitle}</span>
+          {badge && <span style={{ fontSize: 10, color: '#fff', background: m.color, padding: '3px 10px', borderRadius: 100, fontWeight: 800, whiteSpace: 'nowrap' }}>{badge}</span>}
         </div>
-        <p style={{ color: C.dim, fontSize: 13, lineHeight: 1.55 }}>{m.desc}</p>
+        <p style={{ color: C.dim, fontSize: 13, lineHeight: 1.55 }}>{disabled ? 'Completa almeno un quiz per sbloccare questa modalità.' : m.desc}</p>
       </div>
       <div style={{ color: m.color, fontSize: 22, flexShrink: 0, opacity: hov ? 1 : 0.3, transition: 'opacity 0.2s' }}>›</div>
     </button>
@@ -363,10 +377,24 @@ function ModeCard({ m, onSelect, delay }) {
 // ─────────────────────────────────────────────
 // QUIZ SCREEN
 // ─────────────────────────────────────────────
-function QuizScreen({ mode, onDone }) {
+function QuizScreen({ mode, qStats, onDone }) {
   const isInfinite = mode.id === 'infinito';
+  const hasTimer   = isInfinite || mode.totalTimer !== null;
 
-  const [pool, setPool]               = useState(() => shuffle(ALL_Q));
+  const buildPool = () => {
+    if (mode.id === 'errori') {
+      const wrongIds = new Set(
+        Object.entries(qStats)
+          .filter(([, s]) => s.seen > 0 && s.correct < s.seen)
+          .map(([id]) => id)
+      );
+      const wrong = ALL_Q.filter(q => wrongIds.has(String(q.id)));
+      return shuffle(wrong.length > 0 ? wrong : ALL_Q);
+    }
+    return shuffle(ALL_Q);
+  };
+
+  const [pool, setPool]               = useState(() => buildPool());
   const [pidx, setPidx]               = useState(0);
   const [correct, setCorrect]         = useState(0);
   const [errors, setErrors]           = useState(0);
@@ -376,7 +404,7 @@ function QuizScreen({ mode, onDone }) {
   const [selected, setSelected]       = useState(null);
   const [showExp, setShowExp]         = useState(false);
   const [isTO, setIsTO]               = useState(false);
-  const [timeLeft, setTimeLeft]       = useState(isInfinite ? mode.qTimer : mode.totalTimer);
+  const [timeLeft, setTimeLeft]       = useState(isInfinite ? mode.qTimer : (mode.totalTimer ?? null));
 
   const latestRef = useRef({});
   latestRef.current = { correct, errors, answered, wrongList, pool, pidx, questionResults };
@@ -403,7 +431,7 @@ function QuizScreen({ mode, onDone }) {
   }, [timeLeft, showExp, isFailed, isComplete]);
 
   useEffect(() => {
-    if (timeLeft > 0) return;
+    if (timeLeft === null || timeLeft > 0) return;
     if (showExpRef.current) return;
     if (isInfinite) {
       const q = currentQRef.current;
@@ -485,8 +513,8 @@ function QuizScreen({ mode, onDone }) {
   };
 
   // ── DERIVED UI ──
-  const timerPct   = isInfinite ? (timeLeft / mode.qTimer) * 100 : (timeLeft / mode.totalTimer) * 100;
-  const timerColor = isInfinite
+  const timerPct   = !hasTimer ? 100 : isInfinite ? (timeLeft / mode.qTimer) * 100 : (timeLeft / mode.totalTimer) * 100;
+  const timerColor = !hasTimer ? C.dim : isInfinite
     ? (timeLeft < 10 ? C.red : timeLeft < 20 ? C.yellow : C.green)
     : (timeLeft < 300 ? C.red : timeLeft < 600 ? C.yellow : C.green);
   const progress = mode.totalQ ? (answered / mode.totalQ) * 100 : null;
@@ -512,14 +540,16 @@ function QuizScreen({ mode, onDone }) {
           <Chip icon="✗" val={errors}  c={C.red} />
           {mode.totalQ && <Chip icon="#" val={`${answered}/${mode.totalQ}`} c={C.dim} />}
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 28, fontWeight: 700, color: timerColor, lineHeight: 1 }}>
-            {isInfinite ? `${timeLeft}s` : fmt(timeLeft)}
+        {hasTimer && (
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 28, fontWeight: 700, color: timerColor, lineHeight: 1 }}>
+              {isInfinite ? `${timeLeft}s` : fmt(timeLeft)}
+            </div>
+            <div style={{ fontSize: 11, color: C.dim, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {isInfinite ? 'per domanda' : 'rimanenti'}
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: C.dim, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {isInfinite ? 'per domanda' : 'rimanenti'}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Timer bar */}
