@@ -143,9 +143,9 @@ const fmtDate = ts => new Date(ts).toLocaleDateString('it-IT', { day: '2-digit',
 // ─────────────────────────────────────────────
 const MODES = {
   infinito: {
-    id: 'infinito', name: 'Quiz Infinito', icon: '∞', subtitle: '30s per domanda',
-    desc: 'Domande casuali infinite dal database ufficiale 2023. Timer di 30 secondi per risposta.',
-    totalQ: null, qTimer: 30, totalTimer: null, maxErr: null, color: '#06b6d4',
+    id: 'infinito', name: 'Quiz Infinito', icon: '∞', subtitle: 'domande infinite',
+    desc: 'Domande casuali infinite dal database ufficiale 2023. Nessun limite di tempo.',
+    totalQ: null, qTimer: null, totalTimer: null, maxErr: null, color: '#06b6d4',
   },
   normale: {
     id: 'normale', name: 'Quiz Normale', icon: '✏', subtitle: '30 dom · senza timer',
@@ -379,7 +379,7 @@ function ModeCard({ m, onSelect, delay, disabled, badge }) {
 // ─────────────────────────────────────────────
 function QuizScreen({ mode, qStats, onDone }) {
   const isInfinite = mode.id === 'infinito';
-  const hasTimer   = isInfinite || mode.totalTimer !== null;
+  const hasTimer   = (isInfinite && mode.qTimer !== null) || (!isInfinite && mode.totalTimer !== null);
 
   const buildPool = () => {
     if (mode.id === 'errori') {
@@ -404,7 +404,7 @@ function QuizScreen({ mode, qStats, onDone }) {
   const [selected, setSelected]       = useState(null);
   const [showExp, setShowExp]         = useState(false);
   const [isTO, setIsTO]               = useState(false);
-  const [timeLeft, setTimeLeft]       = useState(isInfinite ? mode.qTimer : (mode.totalTimer ?? null));
+  const [timeLeft, setTimeLeft]       = useState(isInfinite ? (mode.qTimer ?? null) : (mode.totalTimer ?? null));
 
   const latestRef = useRef({});
   latestRef.current = { correct, errors, answered, wrongList, pool, pidx, questionResults };
@@ -472,7 +472,7 @@ function QuizScreen({ mode, qStats, onDone }) {
     } else {
       setPidx(nextIdx);
     }
-    if (isInfinite) setTimeLeft(mode.qTimer);
+    if (isInfinite && mode.qTimer !== null) setTimeLeft(mode.qTimer);
   };
 
   // Keep ref so setTimeout can always call the latest version
