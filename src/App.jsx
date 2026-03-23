@@ -550,7 +550,7 @@ function QuizScreen({ mode, onDone }) {
       <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 18, padding: '26px', marginBottom: 18 }} className="fadeup">
         {currentQ.img && (
           <div style={{ textAlign: 'center', marginBottom: 18 }}>
-            <img src={currentQ.img} alt="Segnale stradale" style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8 }} />
+            <img src={import.meta.env.BASE_URL + currentQ.img.replace(/^\//, '')} alt="Segnale stradale" style={{ maxWidth: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 8 }} />
           </div>
         )}
         <p style={{ fontSize: 'clamp(15px,2.5vw,19px)', lineHeight: 1.65, fontWeight: 600, color: '#fff' }}>
@@ -720,7 +720,7 @@ function ResultsScreen({ results, mode, qStats, onRestart, onHome }) {
                 <div style={{ fontSize: 11, color: mode.color, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{item.q.category}</div>
                 {item.q.img && (
                   <div style={{ textAlign: 'center', marginBottom: 10 }}>
-                    <img src={item.q.img} alt="Segnale" style={{ maxWidth: '100%', maxHeight: 140, objectFit: 'contain', borderRadius: 6 }} />
+                    <img src={import.meta.env.BASE_URL + item.q.img.replace(/^\//, '')} alt="Segnale" style={{ maxWidth: '100%', maxHeight: 140, objectFit: 'contain', borderRadius: 6 }} />
                   </div>
                 )}
                 <p style={{ fontWeight: 600, fontSize: 14.5, marginBottom: 12, color: '#fff', lineHeight: 1.55 }}>{item.q.text}</p>
