@@ -1,0 +1,29 @@
+{
+  "name": "quiz-patente",
+  "version": "1.0.0",
+  "private": true,
+  "bin": "server.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:exe": "vite build && pkg . --target node18-win-x64 --output \"QuizPatente.exe\" --compress GZip"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "pkg": "^5.8.1",
+    "vite": "^5.4.2"
+  },
+  "pkg": {
+    "assets": [
+      "dist/**/*"
+    ],
+    "targets": [
+      "node18-win-x64"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npx vite:*)",
+      "Bash(node -e \":*)",
+      "Bash(npx pkg:*)",
+      "Bash(grep -E \"\\\\.\\(jsx|js\\)$\")"
+    ]
+  }
+}
