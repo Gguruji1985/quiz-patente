@@ -3,7 +3,10 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/quiz-patente/', // change 'quiz-patente' to match your GitHub repo name
+  base: '/quiz-patente/',
+  build: {
+    outDir: 'docs',
+  },
   // Serve QuizPatenteB-main/ as the static root so /img_sign/*.png resolves correctly
   publicDir: 'QuizPatenteB-main',
   server: {
