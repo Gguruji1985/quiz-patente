@@ -57,7 +57,7 @@ strong      { font-weight: 700; }
 
 .screen               { margin: 0 auto; }
 .screen--home         { max-width: 760px; padding: 52px 20px 80px; }
-.screen--quiz         { max-width: 680px; padding: 24px 20px 80px; min-height: 100vh; }
+.screen--quiz         { max-width: 680px; padding: 24px 20px 180px; min-height: 100vh; }
 .screen--results      { max-width: 700px; padding: 32px 20px 80px; }
 .screen--stats        { max-width: 720px; padding: 32px 20px 80px; }
 
@@ -315,7 +315,15 @@ strong      { font-weight: 700; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-bottom: 14px;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 680px;
+  padding: 12px 20px 20px;
+  background: linear-gradient(to bottom, transparent, var(--bg) 28%);
+  z-index: 100;
 }
 
 .vf-btn {
@@ -375,6 +383,8 @@ strong      { font-weight: 700; }
 @media (max-width: 600px) {
   .vf-btn__letter { font-size: 34px; }
   .vf-btn         { padding: 22px 12px 18px; }
+  .vf-buttons     { padding: 12px 14px calc(16px + env(safe-area-inset-bottom)); }
+  .screen--quiz   { padding-bottom: 190px; }
 }
 
 /* ── OPTIONS (non-VF fallback, unused but kept) ──────────── */
