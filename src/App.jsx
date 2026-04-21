@@ -256,7 +256,10 @@ function QuizScreen({ mode, qStats, onDone }) {
     setSel(idx); setFB(true);
     setQR(r=>[...r,{id:cq.id,correct:ok}]);
     if(!ok) setWL(w=>[...w,{q:cq,selected:idx}]);
-    if(isInf){clearTimeout(autoRef.current); autoRef.current=setTimeout(()=>nextRef.current(),600);}
+    // Auto-advance; if quiz ends next() will navigate to results
+    const willFail = mode.maxErr!==null&&(errors+(ok?0:1))>mode.maxErr;
+    const willDone = mode.totalQ!==null&&(answered+1)>=mode.totalQ;
+    if(!willFail&&!willDone){clearTimeout(autoRef.current); autoRef.current=setTimeout(()=>nextRef.current(),700);}
   };
 
   useEffect(()=>{
@@ -332,9 +335,9 @@ function QuizScreen({ mode, qStats, onDone }) {
         </div>
       )}
 
-      {showFB&&!isInf&&(
-        <button className={`btn-next${nf2||nc2?' btn-next--end':''}`} onClick={next}>
-          {nf2?'❌ Vedi risultati':nc2?'🎯 Vedi risultati':'Prossima →'}
+      {showFB&&!isInf&&(nf2||nc2)&&(
+        <button className="btn-next btn-next--end" onClick={next}>
+          {nf2?'❌ Vedi risultati':'🎯 Vedi risultati'}
         </button>
       )}
     </div>
