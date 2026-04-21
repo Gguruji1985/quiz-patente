@@ -578,3 +578,77 @@ p      { line-height: 1.6; }
 }
 .empty > div:first-child { font-size: 40px; }
 .empty > div:nth-child(2) { font-size: 16px; font-weight: 700; color: var(--text); }
+
+/* ── MOBILE FIXES ─────────────────────────────────────────────────────────── */
+
+/* Improve touch targets globally */
+button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+/* Mode cards: 1-col on small phones */
+@media (max-width: 480px) {
+  .modes { grid-template-columns: 1fr; }
+  .mc { flex-direction: row; align-items: center; gap: 14px; }
+  .mc-icon { font-size: 22px; flex-shrink: 0; }
+  .mc-arr { margin-top: 0; margin-left: auto; }
+  .mc-desc { display: none; }
+}
+
+/* Results grid: 2×2 on small screens */
+@media (max-width: 400px) {
+  .res-grid { grid-template-columns: 1fr 1fr; }
+  .rg-cell:nth-child(2) { border-right: none; }
+  .rg-cell:nth-child(3) { border-top: 1px solid var(--border); }
+  .rg-cell:nth-child(4) { border-top: 1px solid var(--border); border-right: none; }
+
+  /* Overview stats: 2×2 */
+  .ov-grid { grid-template-columns: 1fr 1fr; }
+  .ov-c:nth-child(2) { border-right: none; }
+  .ov-c:nth-child(3) { border-top: 1px solid var(--border); }
+  .ov-c:nth-child(4) { border-top: 1px solid var(--border); border-right: none; }
+}
+
+/* Quiz bar: wrap gracefully */
+.quiz-bar { flex-wrap: wrap; }
+@media (max-width: 400px) {
+  .q-exit { font-size: 12px; padding: 6px 10px; }
+  .qc { font-size: 11px; padding: 4px 8px; }
+}
+
+/* VF buttons: much bigger touch targets on phone */
+@media (max-width: 540px) {
+  .vf { gap: 8px; }
+  .vf-v, .vf-f { padding: 22px 12px; font-size: 18px; }
+  .vf-k { font-size: 28px; }
+  .vf-l { font-size: 16px; }
+}
+
+/* Question text: slightly smaller on very narrow */
+@media (max-width: 360px) {
+  .q-text { font-size: 15px; }
+}
+
+/* Readiness pill on small screens */
+@media (max-width: 360px) {
+  .readiness-pill { padding: 12px 14px; gap: 10px; }
+  .rp-ring, .rp-ring svg { width: 40px; height: 40px; }
+}
+
+/* Stats readiness card top: stack on very narrow */
+@media (max-width: 380px) {
+  .r-card-top { flex-direction: column-reverse; gap: 8px; }
+  .r-big { font-size: 44px; }
+  .r-msg { max-width: 100%; }
+}
+
+/* Screen padding: tighter on small phones */
+@media (max-width: 360px) {
+  .screen { padding: 16px 12px 40px; }
+}
+
+/* Prevent horizontal overflow */
+.screen, .app { overflow-x: hidden; }
+
+/* Safe area insets for notched phones */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .screen { padding-bottom: calc(48px + env(safe-area-inset-bottom)); }
+}
